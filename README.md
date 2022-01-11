@@ -22,9 +22,9 @@ At a minimum, you need to install the following packages.
 * tfenv
 
 
+## Directory structure
 
 ```
-$ tree
 .
 ├── ec2_web
 │   ├── ec2.tf
@@ -32,7 +32,10 @@ $ tree
 │   ├── Makefile
 │   ├── remote_state.tf -> ../remote_state.tf
 │   ├── terraform.tfvars -> ../terraform.tfvars
+│   ├── .tflint.hcl -> ../.tflint.hcl
 │   └── tfstate.tf
+├── .git/
+├── .gitignore
 ├── main.tf
 ├── Makefile
 ├── network
@@ -42,6 +45,7 @@ $ tree
 │   ├── sg.tf
 │   ├── subnet.tf
 │   ├── terraform.tfvars -> ../terraform.tfvars
+│   ├── .tflint.hcl -> ../.tflint.hcl
 │   ├── tfstate.tf
 │   └── vpc.tf
 ├── newdir.sh
@@ -54,6 +58,7 @@ $ tree
 │   ├── record.tf
 │   ├── remote_state.tf -> ../remote_state.tf
 │   ├── terraform.tfvars -> ../terraform.tfvars
+│   ├── .tflint.hcl -> ../.tflint.hcl
 │   └── tfstate.tf
 ├── ssm
 │   ├── main.tf -> ../main.tf
@@ -61,11 +66,13 @@ $ tree
 │   ├── remote_state.tf -> ../remote_state.tf
 │   ├── ssm.tf
 │   ├── terraform.tfvars -> ../terraform.tfvars
+│   ├── .tflint.hcl -> ../.tflint.hcl
 │   └── tfstate.tf
 ├── terraform.tfvars
+├── .tflint.hcl
 └── tfstate.tf
 
-4 directories, 34 files
+51 directories, 97 files
 ```
 
 ### 1. Create s3 bucket for tfstate & create tfstate.tf

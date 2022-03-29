@@ -76,6 +76,15 @@ EOM
 }
 
 
+function addTargetDir (){
+  if [ $? -eq 0 ]; then
+    echo "add new terraform TARGETS directory"
+    sed -ie "/^TARGETS/s/$/ $WORKING_DIR/" Makefile
+  else
+    echo "Oops!! add new terraform TARGETS directory" $WORKING_DIR
+  fi
+}
+
 while getopts ":d:b:p:h" optKey; do
   case "$optKey" in
     d)
@@ -97,3 +106,4 @@ newDir
 mvDir
 tfSymlink
 tfstateCreate
+addTargetDir

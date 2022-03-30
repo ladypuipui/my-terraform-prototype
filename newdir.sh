@@ -46,7 +46,7 @@ function tfSymlink() {
 }
 
 function addMakefile() {
-  cat <<'EOM' >Makefile
+cat <<- 'EOM' >Makefile-space
   TERRAFORM := aws-vault exec $(PROFILE) -- terraform
   TFLINT := aws-vault exec $(PROFILE) -- tflint
 
@@ -61,8 +61,6 @@ function addMakefile() {
     date; $(TERRAFORM) validate
     date; $(TFLINT)
     date; $(TERRAFORM) plan
-    
-    
 
   .PHONY: apply
   apply:
@@ -71,6 +69,9 @@ EOM
 
   if [ $? -eq 0 ]; then
     echo "Create Makefile"
+    expand Makefile-space > Makefile-tmp
+    unexpand -t 2 --first-only Makefile-tmp > Makefile
+    rm -f Makefile-*
   else
     echo "Oops!! Couldn't create Makefile" $WORKING_DIR
   fi

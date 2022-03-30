@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 
-function usage {
+function usage() {
   cat <<EOM
     Usage: $(basename "$0") [OPTION]...
       -h          Display help
@@ -11,43 +11,73 @@ EOM
   exit 2
 }
 
-function newDir () {
+function newDir() {
   mkdir -p $WORKING_DIR
   if [ $? -eq 0 ]; then
-      echo "Create new directory for resource. : " $WORKING_DIR
-    else
-      echo "Oops!! Dailed create new directory : " $WORKING_DIR
+    echo "Create new directory for resource. : " $WORKING_DIR
+  else
+    echo "Oops!! Dailed create new directory : " $WORKING_DIR
   fi
 }
 
-function mvDir(){
+function mvDir() {
   cd $WORKING_DIR
   if [ $? -eq 0 ]; then
-      echo "Entering directory : " `pwd`
-    else
-      echo "Oops!! Couldn't enter to" `pwd`
+    echo "Entering directory : " $(pwd)
+  else
+    echo "Oops!! Couldn't enter to" $(pwd)
   fi
 }
 
-function tfSymlink () {
+function tfSymlink() {
   function createSymlink {
-      ln -s ../main.tf main.tf
-      ln -s ../terraform.tfvars terraform.tfvars 
-      ln -s ../.tflint.hcl .tflint.hcl
-      ln -s ../remote_state.tf remote_state.tf
+    ln -s ../main.tf main.tf
+    ln -s ../terraform.tfvars terraform.tfvars
+    ln -s ../.tflint.hcl .tflint.hcl
+    ln -s ../remote_state.tf remote_state.tf
   }
-  
+
   createSymlink
   if [ $? -eq 0 ]; then
-      echo "Succeeded in creating a symbolic link"
-    else
-      echo "Oops!! Couldn't create symbolic link" $WORKING_DIR
+    echo "Succeeded in creating a symbolic link"
+  else
+    echo "Oops!! Couldn't create symbolic link" $WORKING_DIR
   fi
 }
 
+function addMakefile() {
+  cat <<'EOM' >Makefile
+  TERRAFORM := aws-vault exec $(PROFILE) -- terraform
+  TFLINT := aws-vault exec $(PROFILE) -- tflint
 
-function tfstateCreate () {
-  cat <<EOM > tfstate.tf
+  .PHONY: init
+  init:
+    $(TERRAFORM) init
+    $(TFLINT) --init
+
+  .PHONY: plan
+  plan:
+    date; $(TERRAFORM) fmt
+    date; $(TERRAFORM) validate
+    date; $(TFLINT)
+    date; $(TERRAFORM) plan
+    
+    
+
+  .PHONY: apply
+  apply:
+    date; $(TERRAFORM) apply
+EOM
+
+  if [ $? -eq 0 ]; then
+    echo "Create Makefile"
+  else
+    echo "Oops!! Couldn't create Makefile" $WORKING_DIR
+  fi
+}
+
+function tfstateCreate() {
+  cat <<EOM >tfstate.tf
     # ----------------------------------
     # Terraform configuration
     # ----------------------------------
@@ -64,22 +94,22 @@ function tfstateCreate () {
 EOM
 
   if [ $? -eq 0 ]; then
-        echo "Create tfstate.tf"
-        terraform fmt
-        aws-vault exec $PROFILE -- terraform init
-        cd - > /dev/null
-        echo "Leaving directory : " `pwd`"/"$WORKING_DIR
-      else
-        echo "Oops!! Couldn't create tfstate.tf" $WORKING_DIR
+    echo "Create tfstate.tf"
+    terraform fmt
+    aws-vault exec $PROFILE -- terraform init
+    aws-vault exec $PROFILE -- tflint --init
+    cd - >/dev/null
+    echo "Leaving directory : " $(pwd)"/"$WORKING_DIR
+  else
+    echo "Oops!! Couldn't create tfstate.tf" $WORKING_DIR
   fi
 
 }
 
-
-function addTargetDir (){
+function addTargetDir() {
   if [ $? -eq 0 ]; then
     echo "add new terraform TARGETS directory"
-    sed -ie "/^TARGETS/s/$/ $WORKING_DIR/" Makefile
+    sed -i "/^TARGETS/s/$/ $WORKING_DIR/" Makefile
   else
     echo "Oops!! add new terraform TARGETS directory" $WORKING_DIR
   fi
@@ -87,23 +117,24 @@ function addTargetDir (){
 
 while getopts ":d:b:p:h" optKey; do
   case "$optKey" in
-    d)
-      WORKING_DIR=${OPTARG}
-      ;;
-    b)
-      STATE_BUCKET=${OPTARG}
-      ;;
-    p)
-      PROFILE=${OPTARG}
-      ;;
-    '-h'|'--help'|* )
-      usage
-      ;;
+  d)
+    WORKING_DIR=${OPTARG}
+    ;;
+  b)
+    STATE_BUCKET=${OPTARG}
+    ;;
+  p)
+    PROFILE=${OPTARG}
+    ;;
+  '-h' | '--help' | *)
+    usage
+    ;;
   esac
 done
 
 newDir
 mvDir
 tfSymlink
+addMakefile
 tfstateCreate
 addTargetDir

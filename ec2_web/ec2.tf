@@ -2,8 +2,18 @@
 # ec2 for ROLE_NAME
 # ----------------------------------
 
-data "aws_ssm_parameter" "amazonlinux2" {
-  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+data "aws_ami" "recent_amazon_linux2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "state"
+    values = ["available"]
+  }
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-2.0.*"]
+  }
 }
 
 resource "aws_eip" "this" {
